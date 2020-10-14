@@ -1,0 +1,39 @@
+---
+title: "Project 2 - Karen Lopez"
+date: "October 16, 2020"
+output:
+  rmarkdown::github_document:
+    toc: true
+knit: (function(input, ...){
+  rmarkdown::render(
+    input,
+    output_file="README.md",
+    envir=globalenv()
+  )})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introduction  
+Bike sharing data set from [this site](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset).  
+
+
+## Data  
+
+
+## Summarizations  
+
+
+## Modeling  
+
+
+## Automation & Blog Post
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
