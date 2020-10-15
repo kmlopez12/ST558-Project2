@@ -16,7 +16,7 @@ knit: (function(input, ...){
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Introduction  
-This project uses the bike sharing data set, day.csv, that's located *[here](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset)* and contains 731 observations with 15 attributes. For modeling, the response variable is the count of total rental bikes rented (*cnt*) and 12 of the 14 remaining variables will be considered for predictor variables (*casual* and *registered* are omitted). The 12 remaining variables include date, season, year, month, holiday, weekday, working day, weather, temperature, feeling temperature, humidity, and wind speed.  
+This project uses the bike sharing data set, day.csv, that's located *[here](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset)* and contains 731 observations with 15 attributes. For modeling, the response variable is the count of total rental bikes rented (*cnt*) and 11 of the 14 remaining variables will be considered for predictor variables. Variables *casual* and *registered* are omitted and analysis are performed on each *weekday* variable. The 11 remaining variables include date, season, year, month, holiday, working day, weather, temperature, feeling temperature, humidity, and wind speed.  
 Purpose of analysis:  
 Methods I'll use:  
 To begin, necessary libraries are loaded so their functions are accessible and global variables are set.  
@@ -26,14 +26,17 @@ library(caret)
 library(knitr)
 library(corrplot)
 library(dplyr)
+library(tidyverse)
 num <- 12
 ```
 
 ## Data  
-The dataset is read in using a relative path and saved as an object. The data is then randomly split into a training and testing set, where 70% of the data goes into the training set and the remaining 30% goes into the testing set.  
+The dataset is read in using a relative path and saved as an object. The weekday variable is used to filter the data for each day of the week. The data is then randomly split into a training and testing set, where 70% of the data goes into the training set and the remaining 30% goes into the testing set.  
 ```{r datasets, warning=FALSE}
+#read in dataset with relative path & save to object
 bikeData <- read_csv("Bike-Sharing-Dataset/day.csv") #read in data
-bikeData$cnt <- as.factor(bikeData$cnt) #convert response to factor
+#bikeData$weekday <- as.factor(bikeData$weekday) #convert weekday to factor
+bikeData <- bikeData %>% filter(weekday==0)
 
 #create partitions in data indexes with 70% going in the training set
 set.seed(num)
@@ -44,8 +47,8 @@ test <- dplyr::setdiff(1:nrow(bikeData), train)
 bikeDataTrain <- bikeData[train, ]
 bikeDataTest <- bikeData[test, ]
 
-#kable(bikeDataTrain) #check for 70% of data -> 511
-#kable(bikeDataTest) #check for 30% of data -> 220
+#bikeDataTrain #check for 70% of data -> 73 of 105
+#bikeDataTest #check for 30% of data -> 32 of 105
 
 kable(head(bikeDataTrain)) #preview train data
 kable(head(bikeDataTest)) #preview test data
@@ -54,6 +57,28 @@ kable(head(bikeDataTest)) #preview test data
 ## Summarizations  
 summary statistics and plot with some general explanations  
 ```{r summaries}
+summary(bikeDataTrain)
+
+#quantitative histogram for cnt
+g <- ggplot(bikeDataTrain, aes(x=cnt))
+g + geom_histogram()
+
+#create 3 plots of variables against each other and the response variable
+bikeDataTrain1 <- bikeDataTrain %>% select(dteday, season, yr, mnth, cnt)
+GGally::ggpairs(bikeDataTrain1)
+#all  might be of interest (corr=0.496, 0.486, 0.420, 0.309)
+
+bikeDataTrain2 <- bikeDataTrain %>% select(holiday, workingday, weathersit, cnt)
+GGally::ggpairs(bikeDataTrain2)
+#none might be of interest (all corr N/A or negative)
+
+bikeDataTrain3 <- bikeDataTrain %>% select(temp, atemp, hum, windspeed, cnt)
+GGally::ggpairs(bikeDataTrain3)
+#temp & atemp might be of interest (corr=0.668, 0.670)
+
+bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, temp, atemp, cnt)
+GGally::ggpairs(bikeDataTrain4)
+#free sulfur dioxide & alcohol might be of more interest than the others but I want to add more predictors
 
 ```
 
