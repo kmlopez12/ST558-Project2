@@ -174,16 +174,6 @@ bikeDataTrain2 <- bikeDataTrain %>% select(holiday, workingday, weathersit, cnt)
 GGally::ggpairs(bikeDataTrain2)
 ```
 
-    ## Warning in cor(x, y): the standard deviation is zero
-    
-    ## Warning in cor(x, y): the standard deviation is zero
-    
-    ## Warning in cor(x, y): the standard deviation is zero
-    
-    ## Warning in cor(x, y): the standard deviation is zero
-    
-    ## Warning in cor(x, y): the standard deviation is zero
-
 ![](README_files/figure-gfm/summaries-3.png)<!-- -->
 
 ``` r

@@ -56,7 +56,7 @@ kable(head(bikeDataTest)) #preview test data
 
 ## Summarizations  
 summary statistics and plot with some general explanations  
-```{r summaries}
+```{r summaries, warning=FALSE}
 summary(bikeDataTrain)
 
 #quantitative histogram for cnt
