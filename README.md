@@ -19,13 +19,13 @@ first, so the subsequent days are modeled around these results.
 
 ## Analysis Links
 Here are the links for each day's analysis:  
-[Monday]()  
-[Tuesday]()  
-[Wednesday]()  
-[Thursday]()  
-[Friday]()  
-[Saturday]()  
-[Sunday]()  
+- [Monday]()  
+- [Tuesday]()  
+- [Wednesday]()  
+- [Thursday]()  
+- [Friday]()  
+- [Saturday]()  
+- [Sunday]()  
 
 ## Packages Required
 These are the packages required to run the analysis:  
