@@ -19,30 +19,30 @@ first, so the subsequent days are modeled around these results.
 
 ## Analysis Links
 Here are the links for each day's analysis:  
-    [Monday]()  
-    [Tuesday]()  
-    [Wednesday]()  
-    [Thursday]()  
-    [Friday]()  
-    [Saturday]()  
-    [Sunday]()  
+[Monday]()  
+[Tuesday]()  
+[Wednesday]()  
+[Thursday]()  
+[Friday]()  
+[Saturday]()  
+[Sunday]()  
 
 ## Packages Required
 These are the packages required to run the analysis:  
-    readr  
-    caret  
-    knitr  
-    corrplot  
-    dplyr  
-    tidyverse  
-    rpart  
+- readr  
+- caret  
+- knitr  
+- corrplot  
+- dplyr  
+- tidyverse  
+- rpart  
 
 ## Automation
 This is the code used for automating the process:  
-    (insert render function here)  
-    rmarkdown::render(
-      input,
-      output_file="MondayAnalysis.md",
-      params = list(weekday=0)
-      envir=globalenv()
-    )
+(insert render function here)  
+rmarkdown::render(
+    input,
+    output_file="MondayAnalysis.md",
+    params = list(weekday=0)
+    envir=globalenv()
+)
