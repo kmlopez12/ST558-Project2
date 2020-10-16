@@ -6,6 +6,7 @@ October 16, 2020
   - [Data](#data)
   - [Summarizations](#summarizations)
   - [Modeling](#modeling)
+  - [Automation](#automation)
 
 ## Introduction
 
@@ -16,12 +17,12 @@ response variable is the count of total rental bikes rented (*cnt*) and
 11 of the 14 remaining variables will be considered for predictor
 variables. Variables *casual* and *registered* are omitted and analysis
 are performed on each *weekday* variable. The 11 remaining variables
-include date, season, year, month, holiday, working day, weather,
-temperature, feeling temperature, humidity, and wind speed.  
+include values for date, season, year, month, holiday, working day,
+weather, temperature, feeling temperature, humidity, and wind speed.  
 The purpose of this analysis is to fit two different tree models and
 select the best one based on the appropriate criteria. This report will
 be automated to run on the data set for each day of the week, starting
-with Monday at 0, Tuesday at 1, and so on.  
+with Sunday at 0, Monday at 1, and so on.  
 Many methods I’ll use come from a variety of packages installed in this
 first code chunk. First I will read in the data and randomly separate it
 into the training set and testing set, with 70% of the data going into
@@ -46,16 +47,19 @@ num <- 12
 ## Data
 
 The dataset is read in using a relative path and saved as an object. The
-weekday variable is used to filter the data for each day of the week.
-The data is then randomly split into a training and testing set, where
-70% of the data goes into the training set and the remaining 30% goes
-into the testing set.
+weekday variable is converted to a factor with the day values replacing
+their corresponding number, and then the weekday variable is used to
+filter the data for each day of the week. The data is then randomly
+split into a training and testing set, where 70% of the data goes into
+the training set and the remaining 30% goes into the testing set.
 
 ``` r
 #read in dataset with relative path & save to object
 bikeData <- read_csv("Bike-Sharing-Dataset/day.csv") #read in data
-#bikeData$weekday <- as.factor(bikeData$weekday) #convert weekday to factor
-bikeData <- bikeData %>% filter(weekday==0)
+#replace weekday numbers with day name
+bikeData$weekday <- factor(bikeData$weekday, levels = c(0, 1, 2, 3, 4, 5, 6), labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+bikeData <- bikeData %>% filter(weekday=="Monday")
 
 #create partitions in data indexes with 70% going in the training set
 set.seed(num)
@@ -70,17 +74,17 @@ bikeDataTrain #view train data
 
     ## # A tibble: 76 x 16
     ##    instant dteday     season    yr  mnth holiday weekday workingday weathersit
-    ##      <dbl> <date>      <dbl> <dbl> <dbl>   <dbl>   <dbl>      <dbl>      <dbl>
-    ##  1       9 2011-01-09      1     0     1       0       0          0          1
-    ##  2      23 2011-01-23      1     0     1       0       0          0          1
-    ##  3      30 2011-01-30      1     0     1       0       0          0          1
-    ##  4      37 2011-02-06      1     0     2       0       0          0          1
-    ##  5      44 2011-02-13      1     0     2       0       0          0          1
-    ##  6      51 2011-02-20      1     0     2       0       0          0          1
-    ##  7      58 2011-02-27      1     0     2       0       0          0          1
-    ##  8      65 2011-03-06      1     0     3       0       0          0          2
-    ##  9      79 2011-03-20      1     0     3       0       0          0          1
-    ## 10     100 2011-04-10      2     0     4       0       0          0          2
+    ##      <dbl> <date>      <dbl> <dbl> <dbl>   <dbl> <fct>        <dbl>      <dbl>
+    ##  1      10 2011-01-10      1     0     1       0 Monday           1          1
+    ##  2      24 2011-01-24      1     0     1       0 Monday           1          1
+    ##  3      31 2011-01-31      1     0     1       0 Monday           1          2
+    ##  4      38 2011-02-07      1     0     2       0 Monday           1          1
+    ##  5      45 2011-02-14      1     0     2       0 Monday           1          1
+    ##  6      52 2011-02-21      1     0     2       1 Monday           0          2
+    ##  7      59 2011-02-28      1     0     2       0 Monday           1          2
+    ##  8      66 2011-03-07      1     0     3       0 Monday           1          1
+    ##  9      80 2011-03-21      2     0     3       0 Monday           1          2
+    ## 10      94 2011-04-04      2     0     4       0 Monday           1          1
     ## # … with 66 more rows, and 7 more variables: temp <dbl>, atemp <dbl>,
     ## #   hum <dbl>, windspeed <dbl>, casual <dbl>, registered <dbl>, cnt <dbl>
 
@@ -90,17 +94,17 @@ bikeDataTest #view train data
 
     ## # A tibble: 29 x 16
     ##    instant dteday     season    yr  mnth holiday weekday workingday weathersit
-    ##      <dbl> <date>      <dbl> <dbl> <dbl>   <dbl>   <dbl>      <dbl>      <dbl>
-    ##  1       2 2011-01-02      1     0     1       0       0          0          2
-    ##  2      16 2011-01-16      1     0     1       0       0          0          1
-    ##  3      72 2011-03-13      1     0     3       0       0          0          1
-    ##  4      86 2011-03-27      2     0     3       0       0          0          2
-    ##  5      93 2011-04-03      2     0     4       0       0          0          1
-    ##  6     135 2011-05-15      2     0     5       0       0          0          2
-    ##  7     149 2011-05-29      2     0     5       0       0          0          1
-    ##  8     170 2011-06-19      2     0     6       0       0          0          2
-    ##  9     198 2011-07-17      3     0     7       0       0          0          1
-    ## 10     205 2011-07-24      3     0     7       0       0          0          1
+    ##      <dbl> <date>      <dbl> <dbl> <dbl>   <dbl> <fct>        <dbl>      <dbl>
+    ##  1       3 2011-01-03      1     0     1       0 Monday           1          1
+    ##  2      17 2011-01-17      1     0     1       1 Monday           0          2
+    ##  3      73 2011-03-14      1     0     3       0 Monday           1          1
+    ##  4      87 2011-03-28      2     0     3       0 Monday           1          1
+    ##  5     101 2011-04-11      2     0     4       0 Monday           1          2
+    ##  6     122 2011-05-02      2     0     5       0 Monday           1          2
+    ##  7     150 2011-05-30      2     0     5       1 Monday           0          1
+    ##  8     157 2011-06-06      2     0     6       0 Monday           1          1
+    ##  9     185 2011-07-04      3     0     7       1 Monday           0          2
+    ## 10     199 2011-07-18      3     0     7       0 Monday           1          1
     ## # … with 19 more rows, and 7 more variables: temp <dbl>, atemp <dbl>,
     ## #   hum <dbl>, windspeed <dbl>, casual <dbl>, registered <dbl>, cnt <dbl>
 
@@ -118,34 +122,38 @@ also view their corresponding scatterplots and density curves.
 summary(bikeDataTrain)
 ```
 
-    ##     instant          dteday               season            yr        
-    ##  Min.   :  9.0   Min.   :2011-01-09   Min.   :1.000   Min.   :0.0000  
-    ##  1st Qu.:189.2   1st Qu.:2011-07-08   1st Qu.:1.000   1st Qu.:0.0000  
-    ##  Median :404.5   Median :2012-02-08   Median :2.000   Median :1.0000  
-    ##  Mean   :381.7   Mean   :2012-01-16   Mean   :2.474   Mean   :0.5395  
-    ##  3rd Qu.:563.8   3rd Qu.:2012-07-16   3rd Qu.:4.000   3rd Qu.:1.0000  
-    ##  Max.   :730.0   Max.   :2012-12-30   Max.   :4.000   Max.   :1.0000  
-    ##       mnth           holiday     weekday    workingday   weathersit   
-    ##  Min.   : 1.000   Min.   :0   Min.   :0   Min.   :0    Min.   :1.000  
-    ##  1st Qu.: 4.000   1st Qu.:0   1st Qu.:0   1st Qu.:0    1st Qu.:1.000  
-    ##  Median : 7.000   Median :0   Median :0   Median :0    Median :1.000  
-    ##  Mean   : 6.605   Mean   :0   Mean   :0   Mean   :0    Mean   :1.263  
-    ##  3rd Qu.:10.000   3rd Qu.:0   3rd Qu.:0   3rd Qu.:0    3rd Qu.:2.000  
-    ##  Max.   :12.000   Max.   :0   Max.   :0   Max.   :0    Max.   :2.000  
-    ##       temp             atemp              hum           windspeed      
-    ##  Min.   :0.09652   Min.   :0.09884   Min.   :0.2758   Min.   :0.05038  
-    ##  1st Qu.:0.33625   1st Qu.:0.33963   1st Qu.:0.4925   1st Qu.:0.13356  
-    ##  Median :0.45875   Median :0.45296   Median :0.6152   Median :0.17880  
-    ##  Mean   :0.47795   Mean   :0.46108   Mean   :0.6180   Mean   :0.19107  
-    ##  3rd Qu.:0.62417   3rd Qu.:0.58428   3rd Qu.:0.7253   3rd Qu.:0.22886  
-    ##  Max.   :0.82250   Max.   :0.79040   Max.   :0.9483   Max.   :0.40921  
-    ##      casual         registered        cnt      
-    ##  Min.   :  54.0   Min.   : 451   Min.   : 605  
-    ##  1st Qu.: 637.8   1st Qu.:2249   1st Qu.:2940  
-    ##  Median :1325.5   Median :2920   Median :4358  
-    ##  Mean   :1323.8   Mean   :2961   Mean   :4284  
-    ##  3rd Qu.:1960.0   3rd Qu.:3761   3rd Qu.:5481  
-    ##  Max.   :2846.0   Max.   :5657   Max.   :8227
+    ##     instant          dteday               season          yr        
+    ##  Min.   : 10.0   Min.   :2011-01-10   Min.   :1.0   Min.   :0.0000  
+    ##  1st Qu.:207.8   1st Qu.:2011-07-26   1st Qu.:1.0   1st Qu.:0.0000  
+    ##  Median :405.5   Median :2012-02-09   Median :2.0   Median :1.0000  
+    ##  Mean   :385.9   Mean   :2012-01-20   Mean   :2.5   Mean   :0.5526  
+    ##  3rd Qu.:566.5   3rd Qu.:2012-07-19   3rd Qu.:4.0   3rd Qu.:1.0000  
+    ##  Max.   :731.0   Max.   :2012-12-31   Max.   :4.0   Max.   :1.0000  
+    ##                                                                     
+    ##       mnth           holiday             weekday     workingday    
+    ##  Min.   : 1.000   Min.   :0.00000   Sunday   : 0   Min.   :0.0000  
+    ##  1st Qu.: 3.000   1st Qu.:0.00000   Monday   :76   1st Qu.:1.0000  
+    ##  Median : 6.500   Median :0.00000   Tuesday  : 0   Median :1.0000  
+    ##  Mean   : 6.539   Mean   :0.09211   Wednesday: 0   Mean   :0.9079  
+    ##  3rd Qu.:10.000   3rd Qu.:0.00000   Thursday : 0   3rd Qu.:1.0000  
+    ##  Max.   :12.000   Max.   :1.00000   Friday   : 0   Max.   :1.0000  
+    ##                                     Saturday : 0                   
+    ##    weathersit         temp             atemp             hum        
+    ##  Min.   :1.000   Min.   :0.09739   Min.   :0.1179   Min.   :0.3758  
+    ##  1st Qu.:1.000   1st Qu.:0.35542   1st Qu.:0.3532   1st Qu.:0.5074  
+    ##  Median :1.000   Median :0.47583   Median :0.4675   Median :0.6228  
+    ##  Mean   :1.368   Mean   :0.48322   Mean   :0.4666   Mean   :0.6319  
+    ##  3rd Qu.:2.000   3rd Qu.:0.63500   3rd Qu.:0.5969   3rd Qu.:0.7392  
+    ##  Max.   :3.000   Max.   :0.78167   Max.   :0.7298   Max.   :0.9250  
+    ##                                                                     
+    ##    windspeed           casual         registered        cnt      
+    ##  Min.   :0.04541   Min.   :   2.0   Min.   :  20   Min.   :  22  
+    ##  1st Qu.:0.14111   1st Qu.: 241.2   1st Qu.:3102   1st Qu.:3327  
+    ##  Median :0.18315   Median : 679.5   Median :3680   Median :4350  
+    ##  Mean   :0.19654   Mean   : 619.8   Mean   :3786   Mean   :4406  
+    ##  3rd Qu.:0.26104   3rd Qu.: 856.2   3rd Qu.:4943   3rd Qu.:5890  
+    ##  Max.   :0.41791   Max.   :2557.0   Max.   :6435   Max.   :7525  
+    ## 
 
 ``` r
 #quantitative histogram for cnt to view distribution
@@ -173,7 +181,7 @@ GGally::ggpairs(bikeDataTrain2)
 ![](MondayAnalysis_files/figure-gfm/summaries-3.png)<!-- -->
 
 ``` r
-#none might be of interest (all corr N/A or negative)
+#workingday might be of interest
 
 bikeDataTrain3 <- bikeDataTrain %>% select(temp, atemp, hum, windspeed, cnt)
 GGally::ggpairs(bikeDataTrain3)
@@ -184,7 +192,7 @@ GGally::ggpairs(bikeDataTrain3)
 ``` r
 #temp & atemp might be of interest
 
-bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, temp, atemp, cnt)
+bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, workingday, temp, atemp, cnt)
 GGally::ggpairs(bikeDataTrain4)
 ```
 
@@ -195,15 +203,17 @@ GGally::ggpairs(bikeDataTrain4)
 ```
 
 Various predictor variables have interactions with each other, and I
-want to focus on those with the lower correlation values, such as year,
-temperature, and feeling temperature. The date, season, and month
-variables will be omitted from further analysis because of their
-stronger correlations with other variables. The temperature and feeling
+want to focus on those with the lower correlation values with each other
+but higher correlations with the response. These variables include such
+as year, temperature, and feeling temperature. The date, season, and
+month variables will be omitted from further analysis because of their
+stronger correlations with other variables, and working day will be
+omitted for its weak correlation with count. The temperature and feeling
 temperature have a very strong correlation so I’ll only keep feeling
 temperature for it’s slightly stronger correlation with the response
 variable, and analyze it alongside the year variable. These variables
-were chosen using the Monday data, and will be used for all other days
-to keep analyses consistent.
+were chosen using the `weekday = Monday` data, and will be used for all
+other days to keep analyses consistent.
 
 ## Modeling
 
@@ -1077,3 +1087,17 @@ postResample(treePred2, bikeDataTest$cnt) # view root mean square error
 The model with the lowest RMSE or lowest MAE value should be used as the
 final model. The instructor later asked us to use MAE, so for the Monday
 data, the better model is the boosted tree model.
+
+## Automation
+
+``` r
+#save unique days
+weekdays <- unique(bikeData$weekday)
+#set filenames
+outFile <- paste0(weekdays, ".md")
+#get list for each day with the day parameter
+params = lapply(weekdays, FUN = function(x){list(weekday = x)})
+#create data frame
+reports <- tibble(outFile, params)
+reports
+```

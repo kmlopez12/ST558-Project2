@@ -5,12 +5,12 @@ output:
   rmarkdown::github_document:
     toc: true
 params:
-  weekday: 0
+  weekday: "Monday"
 knit: (function(input, ...){
   rmarkdown::render(
     input,
     output_file="MondayAnalysis.md",
-    params = list(weekday=0),
+    params = list(weekday="Monday"),
     envir=globalenv()
   )})
 ---
@@ -19,8 +19,8 @@ knit: (function(input, ...){
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, cache = TRUE)
 ```
 ## Introduction  
-This project uses the bike sharing data set, day.csv, that's located *[here](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset)* and contains 731 observations with 15 attributes. For modeling, the response variable is the count of total rental bikes rented (*cnt*) and 11 of the 14 remaining variables will be considered for predictor variables. Variables *casual* and *registered* are omitted and analysis are performed on each *weekday* variable. The 11 remaining variables include date, season, year, month, holiday, working day, weather, temperature, feeling temperature, humidity, and wind speed.  
-The purpose of this analysis is to fit two different tree models and select the best one based on the appropriate criteria. This report will be automated to run on the data set for each day of the week, starting with Monday at 0, Tuesday at 1, and so on.  
+This project uses the bike sharing data set, day.csv, that's located *[here](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset)* and contains 731 observations with 15 attributes. For modeling, the response variable is the count of total rental bikes rented (*cnt*) and 11 of the 14 remaining variables will be considered for predictor variables. Variables *casual* and *registered* are omitted and analysis are performed on each *weekday* variable. The 11 remaining variables include values for date, season, year, month, holiday, working day, weather, temperature, feeling temperature, humidity, and wind speed.  
+The purpose of this analysis is to fit two different tree models and select the best one based on the appropriate criteria. This report will be automated to run on the data set for each day of the week, starting with Sunday at 0, Monday at 1, and so on.  
 Many methods I'll use come from a variety of packages installed in this first code chunk. First I will read in the data and randomly separate it into the training set and testing set, with 70% of the data going into the traiing set. Then I will create some summary statistics and various data plots to view variable relationships and narrow down the predictor variables. Lastly, I will train and fit the models to compare them and pick the final model.  
 To begin, necessary libraries are loaded so their functions are accessible and global variables are set.  
 ```{r libraries}
@@ -35,12 +35,14 @@ num <- 12
 ```
 
 ## Data  
-The dataset is read in using a relative path and saved as an object. The weekday variable is used to filter the data for each day of the week. The data is then randomly split into a training and testing set, where 70% of the data goes into the training set and the remaining 30% goes into the testing set.  
+The dataset is read in using a relative path and saved as an object. The weekday variable is converted to a factor with the day values replacing their corresponding number, and then the weekday variable is used to filter the data for each day of the week. The data is then randomly split into a training and testing set, where 70% of the data goes into the training set and the remaining 30% goes into the testing set.  
 ```{r datasets, warning=FALSE}
 #read in dataset with relative path & save to object
 bikeData <- read_csv("Bike-Sharing-Dataset/day.csv") #read in data
-#bikeData$weekday <- as.factor(bikeData$weekday) #convert weekday to factor
-bikeData <- bikeData %>% filter(weekday==0)
+#replace weekday numbers with day name
+bikeData$weekday <- factor(bikeData$weekday, levels = c(0, 1, 2, 3, 4, 5, 6), labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+bikeData <- bikeData %>% filter(weekday=="Monday")
 
 #create partitions in data indexes with 70% going in the training set
 set.seed(num)
@@ -71,17 +73,17 @@ GGally::ggpairs(bikeDataTrain1)
 
 bikeDataTrain2 <- bikeDataTrain %>% select(holiday, workingday, weathersit, cnt)
 GGally::ggpairs(bikeDataTrain2)
-#none might be of interest (all corr N/A or negative)
+#workingday might be of interest
 
 bikeDataTrain3 <- bikeDataTrain %>% select(temp, atemp, hum, windspeed, cnt)
 GGally::ggpairs(bikeDataTrain3)
 #temp & atemp might be of interest
 
-bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, temp, atemp, cnt)
+bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, workingday, temp, atemp, cnt)
 GGally::ggpairs(bikeDataTrain4)
 # yr & atemp might be of more interest than the others 
 ```
-Various predictor variables have interactions with each other, and I want to focus on those with the lower correlation values, such as year, temperature, and feeling temperature. The date, season, and month variables will be omitted from further analysis because of their stronger correlations with other variables. The temperature and feeling temperature have a very strong correlation so I'll only keep feeling temperature for it's slightly stronger correlation with the response variable, and analyze it alongside the year variable. These variables were chosen using the Monday data, and will be used for all other days to keep analyses consistent.   
+Various predictor variables have interactions with each other, and I want to focus on those with the lower correlation values with each other but higher correlations with the response. These variables include such as year, temperature, and feeling temperature. The date, season, and month variables will be omitted from further analysis because of their stronger correlations with other variables, and working day will be omitted for its weak correlation with count. The temperature and feeling temperature have a very strong correlation so I'll only keep feeling temperature for it's slightly stronger correlation with the response variable, and analyze it alongside the year variable. These variables were chosen using the `weekday = Monday` data, and will be used for all other days to keep analyses consistent.   
 
 ## Modeling  
 Next I will utilize the `caret` package to create two tree models with the training set and then predict each on the testing set, after reducing both sets to include only the variables of interest. The models are based on the response variable, *cnt*, being a continuous variable. The predictors are *yr* and *atemp*, which are categorical (0: 2011, 1: 2012) and continuous variables, respectively.  
@@ -113,4 +115,17 @@ treePred2 <- predict(treeFit2, newdata = data.frame(bikeDataTest))
 #treePred2 #view prediction results
 postResample(treePred2, bikeDataTest$cnt) # view root mean square error
 ```
-The model with the lowest RMSE or lowest MAE value should be used as the final model. The instructor later asked us to use MAE, so for the Monday data, the better model is the boosted tree model.  
+The model with the lowest RMSE and/or lowest MAE value should be used as the final model. The instructor later asked us to focus on MAE, so for the Monday data, the better model is the boosted tree model.  
+
+## Automation  
+```{r automation, eval=FALSE}
+#save unique days
+weekdays <- unique(bikeData$weekday)
+#set filenames
+outFile <- paste0(weekdays, ".md")
+#get list for each day with the day parameter
+params = lapply(weekdays, FUN = function(x){list(weekday = x)})
+#create data frame
+reports <- tibble(outFile, params)
+reports
+```
