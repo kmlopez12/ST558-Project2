@@ -19,13 +19,13 @@ first, so the subsequent days are modeled around these results.
 
 ## Analysis Links
 Here are the links for each day's analysis:  
-- [Monday]()  
-- [Tuesday]()  
-- [Wednesday]()  
-- [Thursday]()  
-- [Friday]()  
-- [Saturday]()  
-- [Sunday]()  
+- [Monday](Monday.md)  
+- [Tuesday](Tuesday.md)  
+- [Wednesday](Wednesday.md)  
+- [Thursday](Thursday.md)  
+- [Friday](Friday.md)  
+- [Saturday](Saturday.md)  
+- [Sunday](Sunday.md)  
 
 ## Packages Required
 These are the packages required to run the analysis:  
@@ -38,11 +38,20 @@ These are the packages required to run the analysis:
 - rpart  
 
 ## Automation
-This is the code used for automating the process:  
-(insert render function here)  
-rmarkdown::render(
-    input,
-    output_file="MondayAnalysis.md",
-    params = list(weekday=0)
-    envir=globalenv()
-)
+This is the R script code used for automating the process:  
+`library(rmarkdown)
+#save unique days
+weekdays <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+#set filenames
+outFile <- paste0(weekdays, ".md")
+#get list for each day with the day parameter
+params = lapply(weekdays, FUN = function(x){list(weekday = x)})
+#create data frame
+reports <- tibble(outFile, params)
+#use data frame to automate R Markdown reports
+apply(reports, MARGIN = 1,
+      FUN = function(x){
+        render(input = "Project2_kmlopez_16Oct20.Rmd",
+               output_file = x[[1]],
+               params = x[[2]])
+      })`
