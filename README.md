@@ -19,6 +19,7 @@ first, so the subsequent days are modeled around these results.
 
 ## Analysis Links
 Here are the links for each day's analysis:
+
 [Monday]()
 
 [Tuesday]()
@@ -52,6 +53,7 @@ rpart
 
 ## Automation
 This is the code used for automating the process:
+
 (insert render function here)
 
 rmarkdown::render(
