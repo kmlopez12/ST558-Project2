@@ -4,29 +4,33 @@ date: "October 16, 2020"
 output:
   rmarkdown::github_document:
     toc: true
+params:
+  weekday: 0
 knit: (function(input, ...){
   rmarkdown::render(
     input,
-    output_file="README.md",
+    output_file="MondayAnalysis.md",
+    params = list(weekday=0),
     envir=globalenv()
   )})
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, cache = TRUE)
 ```
 ## Introduction  
 This project uses the bike sharing data set, day.csv, that's located *[here](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset)* and contains 731 observations with 15 attributes. For modeling, the response variable is the count of total rental bikes rented (*cnt*) and 11 of the 14 remaining variables will be considered for predictor variables. Variables *casual* and *registered* are omitted and analysis are performed on each *weekday* variable. The 11 remaining variables include date, season, year, month, holiday, working day, weather, temperature, feeling temperature, humidity, and wind speed.  
-Purpose of analysis:  
-Methods I'll use:  
+The purpose of this analysis is to fit two different tree models and select the best one based on the appropriate criteria. This report will be automated to run on the data set for each day of the week, starting with Monday at 0, Tuesday at 1, and so on.  
+Many methods I'll use come from a variety of packages installed in this first code chunk. First I will read in the data and randomly separate it into the training set and testing set, with 70% of the data going into the traiing set. Then I will create some summary statistics and various data plots to view variable relationships and narrow down the predictor variables. Lastly, I will train and fit the models to compare them and pick the final model.  
 To begin, necessary libraries are loaded so their functions are accessible and global variables are set.  
-```{r libraries, message=FALSE}
+```{r libraries}
 library(readr)
 library(caret)
 library(knitr)
 library(corrplot)
 library(dplyr)
 library(tidyverse)
+library(rpart)
 num <- 12
 ```
 
@@ -40,33 +44,30 @@ bikeData <- bikeData %>% filter(weekday==0)
 
 #create partitions in data indexes with 70% going in the training set
 set.seed(num)
-train <- sample(1:nrow(bikeData), size = nrow(bikeData)*0.7)
-test <- dplyr::setdiff(1:nrow(bikeData), train)
+trainIndex <- createDataPartition(bikeData$cnt, p = 0.7, list = FALSE)
 
-#create train and test data set with split indexes
-bikeDataTrain <- bikeData[train, ]
-bikeDataTest <- bikeData[test, ]
+#create train and test data set using the trainIndex vector
+bikeDataTrain <- bikeData[trainIndex, ]
+bikeDataTest <- bikeData[-trainIndex, ]
 
-#bikeDataTrain #check for 70% of data -> 73 of 105
-#bikeDataTest #check for 30% of data -> 32 of 105
-
-kable(head(bikeDataTrain)) #preview train data
-kable(head(bikeDataTest)) #preview test data
+bikeDataTrain #view train data
+bikeDataTest #view train data
 ```
 
 ## Summarizations  
-summary statistics and plot with some general explanations  
+Just to get an overview of the data, I first look at the summary of all variables, and the distribution of the rental bike counts. Then I delve deeper into the variable relationships with the response variable, count, and with each other using ggpairs. These correlations will help me narrow down which variables to include in the tree models, but I can also view their corresponding scatterplots and density curves.  
 ```{r summaries, warning=FALSE}
+#summary of training data set
 summary(bikeDataTrain)
 
-#quantitative histogram for cnt
+#quantitative histogram for cnt to view distribution
 g <- ggplot(bikeDataTrain, aes(x=cnt))
 g + geom_histogram()
 
 #create 3 plots of variables against each other and the response variable
 bikeDataTrain1 <- bikeDataTrain %>% select(dteday, season, yr, mnth, cnt)
 GGally::ggpairs(bikeDataTrain1)
-#all  might be of interest (corr=0.496, 0.486, 0.420, 0.309)
+#all 3 might be of interest
 
 bikeDataTrain2 <- bikeDataTrain %>% select(holiday, workingday, weathersit, cnt)
 GGally::ggpairs(bikeDataTrain2)
@@ -74,23 +75,42 @@ GGally::ggpairs(bikeDataTrain2)
 
 bikeDataTrain3 <- bikeDataTrain %>% select(temp, atemp, hum, windspeed, cnt)
 GGally::ggpairs(bikeDataTrain3)
-#temp & atemp might be of interest (corr=0.668, 0.670)
+#temp & atemp might be of interest
 
 bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, temp, atemp, cnt)
 GGally::ggpairs(bikeDataTrain4)
-#free sulfur dioxide & alcohol might be of more interest than the others but I want to add more predictors
-
+# yr & atemp might be of more interest than the others 
 ```
+Various predictor variables have interactions with each other, and I want to focus on those with the lower correlation values, such as year, temperature, and feeling temperature. The date, season, and month variables will be omitted from further analysis because of their stronger correlations with other variables. The temperature and feeling temperature have a very strong correlation so I'll only keep feeling temperature for it's slightly stronger correlation with the response variable, and analyze it alongside the year variable. These variables were chosen using the Monday data, and will be used for all other days to keep analyses consistent.   
 
 ## Modeling  
-fit some models (two)  
+Next I will utilize the `caret` package to create two tree models with the training set and then predict each on the testing set, after reducing both sets to include only the variables of interest. The models are based on the response variable, *cnt*, being a continuous variable. The predictors are *yr* and *atemp*, which are categorical (0: 2011, 1: 2012) and continuous variables, respectively.  
+
+The first model is a non-ensemble tree-based model chosen using leave-one-out cross-validation, and the second model is a boosted tree model chosen using 12-fold cross-validation. Just in case, and for good practice, the predictor variables are standardize via centering and scaling. Each model is then predicted on using the training set, and their performances are compared via root mean square error (RMSE) and/or mean absolute error (MAE) values.  
 ```{r models}
+#select only variables needed for modeling
+bikeDataTrain <- bikeDataTrain %>% select(cnt, yr, atemp)
+kable(head(bikeDataTrain)) #preview reduced train data
+bikeDataTest <- bikeDataTest %>% select(cnt, yr, atemp)
+kable(head(bikeDataTest)) #preview reduced test data
 
+#(not ensemble) tree-based model chosen using leave one out cross validation
+#using regression tree to model cnt (continuous variable)
+treeFit1 <- train(cnt ~ ., data = bikeDataTrain, method = "rpart", preProcess = c("center", "scale"), trControl = trainControl(method = "LOOCV"))
+treeFit1 #view resulting tree parameters
+#plot(treeFit1) #plot result
+
+#boosted tree model chosen using cross-validation
+treeFit2 <- train(cnt ~ ., data = bikeDataTrain, method = "gbm", preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = num))
+treeFit2 #view resulting tree parameters
+
+#compare models on test set, using predict
+treePred1 <- predict(treeFit1, newdata = data.frame(bikeDataTest))
+#treePred1 #view prediction results
+postResample(treePred1, bikeDataTest$cnt) # view root mean square error
+
+treePred2 <- predict(treeFit2, newdata = data.frame(bikeDataTest))
+#treePred2 #view prediction results
+postResample(treePred2, bikeDataTest$cnt) # view root mean square error
 ```
-
-## Automation & Blog Post  
-automate so it creates report for each day of the week  
-```{r automation}
-
-```
-
+The model with the lowest RMSE or lowest MAE value should be used as the final model. The instructor later asked us to use MAE, so for the Monday data, the better model is the boosted tree model.  

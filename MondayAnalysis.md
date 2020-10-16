@@ -153,7 +153,7 @@ g <- ggplot(bikeDataTrain, aes(x=cnt))
 g + geom_histogram()
 ```
 
-![](README_files/figure-gfm/summaries-1.png)<!-- -->
+![](MondayAnalysis_files/figure-gfm/summaries-1.png)<!-- -->
 
 ``` r
 #create 3 plots of variables against each other and the response variable
@@ -161,7 +161,7 @@ bikeDataTrain1 <- bikeDataTrain %>% select(dteday, season, yr, mnth, cnt)
 GGally::ggpairs(bikeDataTrain1)
 ```
 
-![](README_files/figure-gfm/summaries-2.png)<!-- -->
+![](MondayAnalysis_files/figure-gfm/summaries-2.png)<!-- -->
 
 ``` r
 #all 3 might be of interest
@@ -170,7 +170,7 @@ bikeDataTrain2 <- bikeDataTrain %>% select(holiday, workingday, weathersit, cnt)
 GGally::ggpairs(bikeDataTrain2)
 ```
 
-![](README_files/figure-gfm/summaries-3.png)<!-- -->
+![](MondayAnalysis_files/figure-gfm/summaries-3.png)<!-- -->
 
 ``` r
 #none might be of interest (all corr N/A or negative)
@@ -179,7 +179,7 @@ bikeDataTrain3 <- bikeDataTrain %>% select(temp, atemp, hum, windspeed, cnt)
 GGally::ggpairs(bikeDataTrain3)
 ```
 
-![](README_files/figure-gfm/summaries-4.png)<!-- -->
+![](MondayAnalysis_files/figure-gfm/summaries-4.png)<!-- -->
 
 ``` r
 #temp & atemp might be of interest
@@ -188,7 +188,7 @@ bikeDataTrain4 <- bikeDataTrain %>% select(dteday, season, yr, mnth, temp, atemp
 GGally::ggpairs(bikeDataTrain4)
 ```
 
-![](README_files/figure-gfm/summaries-5.png)<!-- -->
+![](MondayAnalysis_files/figure-gfm/summaries-5.png)<!-- -->
 
 ``` r
 # yr & atemp might be of more interest than the others 
