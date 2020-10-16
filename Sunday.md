@@ -6,7 +6,6 @@ October 16, 2020
   - [Data](#data)
   - [Summarizations](#summarizations)
   - [Modeling](#modeling)
-  - [Automation](#automation)
 
 ## Introduction
 
@@ -1101,23 +1100,3 @@ postResample(treePred2, bikeDataTest$cnt) # view root mean square error
 The model with the lowest RMSE and/or lowest MAE value should be used as
 the final model. The instructor later asked us to focus on MAE, so for
 the Monday data, the better model is the boosted tree model.
-
-## Automation
-
-``` r
-#save unique days
-weekdays <- unique(bikeData$weekday)
-#set filenames
-outFile <- paste0(weekdays, ".md")
-#get list for each day with the day parameter
-params = lapply(weekdays, FUN = function(x){list(weekday = x)})
-#create data frame
-reports <- tibble(outFile, params)
-reports
-apply(reports, MARGIN = 1,
-  FUN = function(x){
-    render(input = "Bike-Sharing-Dataset/day.csv",
-    output_file = x[[1]],
-    params = x[[2]])
-  })
-```

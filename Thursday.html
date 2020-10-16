@@ -607,7 +607,6 @@ body {
 <li><a href="#data">Data</a></li>
 <li><a href="#summarizations">Summarizations</a></li>
 <li><a href="#modeling">Modeling</a></li>
-<li><a href="#automation">Automation</a></li>
 </ul>
 <h2 id="introduction">Introduction</h2>
 <p>This project uses the bike sharing data set, day.csv, that’s located <em><a href="https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset">here</a></em> and contains 731 observations with 15 attributes. For modeling, the response variable is the count of total rental bikes rented (<em>cnt</em>) and 11 of the 14 remaining variables will be considered for predictor variables. Variables <em>casual</em> and <em>registered</em> are omitted and analysis are performed on each <em>weekday</em> variable. The 11 remaining variables include values for date, season, year, month, holiday, working day, weather, temperature, feeling temperature, humidity, and wind speed.<br />
@@ -1651,22 +1650,6 @@ To begin, necessary libraries are loaded so their functions are accessible and g
 ## 817.8418026   0.8175234 689.0103556
 </code></pre>
 <p>The model with the lowest RMSE and/or lowest MAE value should be used as the final model. The instructor later asked us to focus on MAE, so for the Monday data, the better model is the boosted tree model.</p>
-<h2 id="automation">Automation</h2>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a><span class="co">#save unique days</span></span>
-<span id="cb26-2"><a href="#cb26-2"></a>weekdays &lt;-<span class="st"> </span><span class="kw">unique</span>(bikeData<span class="op">$</span>weekday)</span>
-<span id="cb26-3"><a href="#cb26-3"></a><span class="co">#set filenames</span></span>
-<span id="cb26-4"><a href="#cb26-4"></a>outFile &lt;-<span class="st"> </span><span class="kw">paste0</span>(weekdays, <span class="st">&quot;.md&quot;</span>)</span>
-<span id="cb26-5"><a href="#cb26-5"></a><span class="co">#get list for each day with the day parameter</span></span>
-<span id="cb26-6"><a href="#cb26-6"></a>params =<span class="st"> </span><span class="kw">lapply</span>(weekdays, <span class="dt">FUN =</span> <span class="cf">function</span>(x){<span class="kw">list</span>(<span class="dt">weekday =</span> x)})</span>
-<span id="cb26-7"><a href="#cb26-7"></a><span class="co">#create data frame</span></span>
-<span id="cb26-8"><a href="#cb26-8"></a>reports &lt;-<span class="st"> </span><span class="kw">tibble</span>(outFile, params)</span>
-<span id="cb26-9"><a href="#cb26-9"></a>reports</span>
-<span id="cb26-10"><a href="#cb26-10"></a><span class="kw">apply</span>(reports, <span class="dt">MARGIN =</span> <span class="dv">1</span>,</span>
-<span id="cb26-11"><a href="#cb26-11"></a>  <span class="dt">FUN =</span> <span class="cf">function</span>(x){</span>
-<span id="cb26-12"><a href="#cb26-12"></a>    <span class="kw">render</span>(<span class="dt">input =</span> <span class="st">&quot;Bike-Sharing-Dataset/day.csv&quot;</span>,</span>
-<span id="cb26-13"><a href="#cb26-13"></a>    <span class="dt">output_file =</span> x[[<span class="dv">1</span>]],</span>
-<span id="cb26-14"><a href="#cb26-14"></a>    <span class="dt">params =</span> x[[<span class="dv">2</span>]])</span>
-<span id="cb26-15"><a href="#cb26-15"></a>  })</span></code></pre></div>
 
 </body>
 </html>
