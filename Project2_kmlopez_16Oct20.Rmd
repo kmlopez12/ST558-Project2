@@ -109,3 +109,23 @@ treePred2 <- predict(treeFit2, newdata = data.frame(bikeDataTest))
 postResample(treePred2, bikeDataTest$cnt) # view root mean square error
 ```
 The model with the lowest RMSE and/or lowest MAE value should be used as the final model. The instructor later asked us to focus on MAE, so for the Monday data, the better model is the boosted tree model.  
+
+### Secondary Analysis by Robyn Lewis
+I'll be performing a linear regression analysis on this data. I'll be using the same reduced data set used for the tree analysis to get the best comparison between these methods. 
+```{r lmFit}
+linearFit <- lm(cnt~., data=bikeDataTrain)
+linearFit
+```
+Now we'll predict on the test data using the linear model. 
+
+```{r lmPred}
+linearPred <- predict(linearFit, newdata=bikeDataTest)
+linearPred
+```
+We'll evaluate this model using the RMSE. 
+```{r lmRMSE, warning=FALSE}
+library(Metrics)
+lmRMSE <- rmse(bikeDataTest$cnt, linearPred)
+lmRMSE
+```
+While this may vary for other days, for Monday's data, the linear model had a lower RMSE than either tree model. 
